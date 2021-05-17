@@ -21,6 +21,7 @@ const App = () => {
   }, [])
 
   const onSubmit = async () => {
+    if (!search || !domains) return
     setLastSearch(search)
     setStatuses([])
     setError('')
@@ -28,19 +29,25 @@ const App = () => {
     for (const domain of domains) {
       if (error) return
 
-      try {
-        const response = await API.getAvailability(search, domain)
-        setStatuses(prev => [...prev, response.data])
-      } catch (e) {
-        setError(JSON.stringify(e))
-        return
-      }
+      (async () => {
+        try {
+          const response = await API.getAvailability(search, domain)
+          setStatuses(prev => [...prev, response.data])
+        } catch (e) {
+          setError(JSON.stringify(e))
+          return
+        }
+      })()
+
+      await new Promise(r => setTimeout(r, 1000));
     }
   }
 
   return (
     <Context.Provider value={{ lastSearch, statuses } as AppContext}>
       <Container style={{ paddingTop: '50px', paddingBottom: '50px' }}>
+        <p>This is just a demo application for testing out AWS Lambdas. API is limited to 60 requests per minute, so you might hit rate limit. Because of that, I set up 1 sec sleep between queries.</p>
+
         {error && (
           <Message color='red'>
             {error}
@@ -49,25 +56,25 @@ const App = () => {
 
         <Form onSubmit={onSubmit}>
           <Form.Field>
-            <label>Search</label>
-            <input value={search} onChange={(event) => {
+            <label>Domain Name Search</label>
+            <input value={search} placeholder={'google'} onChange={(event) => {
               const term = event.target.value
               if (SearchRegex.test(term)) {
-                setSearch(term)
+                setSearch(term.toLowerCase())
               }
             }} />
           </Form.Field>
         </Form>
 
+        <DomainGroup
+          header={'Country Domains'}
+          domains={domains.filter(x => x.type === 'COUNTRY_CODE')}
+        />
+
         <div style={{ textAlign: 'center' }}>
           <DomainGroup
-            header={'General'}
+            header={'General Domains'}
             domains={domains.filter(x => x.type === 'GENERIC')}
-          />
-
-          <DomainGroup
-            header={'Country Domains'}
-            domains={domains.filter(x => x.type === 'COUNTRY_CODE')}
           />
         </div>
       </Container>
