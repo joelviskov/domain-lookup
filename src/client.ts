@@ -8,10 +8,10 @@ const instance = axios.create({
 
 const API = {
   getDomains: async () => {
-    return await instance.get<Domain[]>("/domains")
+    return instance.get<Domain[]>("/domains")
   },
-  getAvailability: async (name: string, domain: Domain) => {
-    return await instance.get<DomainStatus>(`/availability?domain=${name}.${domain.name}`)
+  getAvailability: async (name: string, tld: Domain) => {
+    return instance.get<DomainStatus>(`/availability?domain=${name}.${tld.name}`)
   }
 }
 

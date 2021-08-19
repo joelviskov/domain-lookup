@@ -17,6 +17,6 @@ export type DomainType = 'GENERIC' | 'COUNTRY_CODE'
 
 
 export interface AppContext {
-  lastSearch: string
+  lookup: string
   statuses: DomainStatus[]
 }
